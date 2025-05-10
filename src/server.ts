@@ -1,16 +1,15 @@
 import express from 'express';
-import dotenv from 'dotenv';
+import { config } from './config/config';
 import { connectDB } from './config/dbConnection';
 import cors from 'cors';
 import { errorHandler } from './middleware/error-handler';
 import authRoutes from './routes/auth.route';
 
-dotenv.config();
 
 connectDB();
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = config.port || 3000;
 
 // Middleware
 app.use(cors({

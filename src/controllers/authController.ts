@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { createUser, getUserByEmail } from '../services/userService';
+import { createUser, getUserByEmail, getUserById } from '../services/userService';
 import { CreateUserRequest, LoginRequest } from '../types/user.types';
 import { logger } from '../middleware/logger';
 import AppError from '../utils/AppError';
@@ -92,3 +92,21 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     next(error);
   }
 };
+
+export const checkAuth = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+
+    // User is already attached to request by auth middleware
+    const user = await getUserById(req.user!.userId);
+    
+    res.status(200).json({
+      status: 'success',
+      data: {
+        user,
+        isAuthenticated: true
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+}; 
