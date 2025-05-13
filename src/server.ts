@@ -4,6 +4,7 @@ import { connectDB } from './config/dbConnection';
 import cors from 'cors';
 import { errorHandler } from './middleware/error-handler';
 import authRoutes from './routes/auth.route';
+import cookieParser from 'cookie-parser';
 
 
 connectDB();
@@ -16,6 +17,7 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json());
+app.use(cookieParser());
 
 // Routes
 app.use('/api/auth', authRoutes);

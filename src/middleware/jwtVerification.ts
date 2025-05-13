@@ -27,7 +27,7 @@ export const verifyToken = (req: Request, res: Response, next: NextFunction) => 
     const token = authHeader.split(' ')[1];
 
     // Verify token
-    const decoded = jwt.verify(token, config.jwtSecret) as { userId: string };
+    const decoded = jwt.verify(token, config.accessTokenSecret) as { userId: string };
     
     // Add user to request
     req.user = decoded;
@@ -35,7 +35,7 @@ export const verifyToken = (req: Request, res: Response, next: NextFunction) => 
     next();
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {
-      next(new AppError('Invalid token', 401, ErrorType.AUTHENTICATION));
+      next(new AppError('Invalid token', 403, ErrorType.AUTHENTICATION));
     } else {
       next(error);
     }
