@@ -44,7 +44,7 @@ export const createUser = async (
   }
 };
 
-export const getUserByEmail = async (email: string): Promise<IUser | null> => {
+export const getUserToLogin = async (email: string): Promise<IUser | null> => {
   try {
     const user = await UserModel.findOne({ email }).select("+password");
     return user;
@@ -107,6 +107,7 @@ export const getUserByRefreshToken = async (refreshToken: string): Promise<UserR
     const user = await UserModel.findOne({refreshTokens: {$in: [refreshToken]}});
     if(!user){
       return null;
+
     }
 
     const { refreshTokens, password, _id, ...rest } = user.toObject();
@@ -122,7 +123,7 @@ export const getUserByRefreshToken = async (refreshToken: string): Promise<UserR
   }
 }
 
-export const removeRefreshToken = async (userId: string, refreshToken: string) => {
+export const removeRefreshToken = async (userId: string, refreshToken: string): Promise<void> => {
   try{
     const user = await UserModel.findById(userId);
     if(!user){
@@ -135,6 +136,21 @@ export const removeRefreshToken = async (userId: string, refreshToken: string) =
 
   }catch(error){
     logger.error(`Error removing refresh token: ${refreshToken}`, error);
+    throw error;
+  }
+}
+
+export const removeAllRefreshTokens = async (userId: string): Promise<void> => {
+  try{
+    const user = await UserModel.findById(userId);
+    if(!user){
+      throw new AppError('User not found', 404, ErrorType.NOT_FOUND);
+    }
+  
+    user.refreshTokens = [];
+    await user.save();
+  }catch(error){
+    logger.error(`Error removing all refresh tokens for user: ${userId}`, error);
     throw error;
   }
 }
