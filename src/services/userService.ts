@@ -11,7 +11,7 @@ export const createUser = async (
     // Check if email exists
     const existingEmail = await UserModel.findOne({ email: data.email });
     if (existingEmail) {
-      throw new AppError("Email is already taken", 400, ErrorType.VALIDATION);
+      throw new AppError("Email is already taken", 409, ErrorType.VALIDATION);
     }
 
     // Check if username exists
@@ -21,7 +21,7 @@ export const createUser = async (
     if (existingUsername) {
       throw new AppError(
         "Username is already taken",
-        400,
+        409,
         ErrorType.VALIDATION
       );
     }

@@ -9,7 +9,7 @@ export const validate = (req: Request, res: Response, next: NextFunction) => {
     const errorMessages = errors.array().map(error => error.msg);
     throw new AppError(
       errorMessages.join(', '),
-      400,
+      409,
       ErrorType.VALIDATION
     );
   }
