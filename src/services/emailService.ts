@@ -3,11 +3,18 @@ import fs from "fs/promises";
 import { emailConfig } from "../config/email.config";
 import { sendEmail } from "../utils/mailer";
 
+
+/**
+ * Sends a verification email to the user
+ * @param email - The email address to send the verification email to
+ * @param verificationToken - The verification token to include in the email link
+ * @param displayName - The display name of the user
+ */
 export const sendVerificationEmail = async (
   email: string,
   verificationToken: string,
   displayName: string
-) => {
+): Promise<void> => {
   const verificationLink = `${emailConfig.verificationLink}?token=${verificationToken}`;
   const subject = "Verify your Refri email address";
   

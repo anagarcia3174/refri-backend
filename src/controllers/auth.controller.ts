@@ -23,7 +23,7 @@ export const register = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
     const { username, email, password }: CreateUserRequest = req.body;
 
@@ -31,7 +31,7 @@ export const register = async (
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user
-    const user = await createUser({
+    const userId = await createUser({
       username,
       email,
       password: hashedPassword,
@@ -39,24 +39,24 @@ export const register = async (
 
     // Generate JWT token
     const accessToken = jwt.sign(
-      { userId: user.id },
+      { userId },
       config.accessTokenSecret,
       { expiresIn: "15m" }
     );
     const refreshToken = jwt.sign(
-      { userId: user.id },
+      { userId },
       config.refreshTokenSecret,
       { expiresIn: "30d" }
     );
     const verificationToken = jwt.sign(
-      { userId: user.id},
+      { userId},
       config.emailVerificationTokenSecret,
       { expiresIn: "15m"}
     );
 
-    await addRefreshToken(user.id, refreshToken);
+    await addRefreshToken(userId, refreshToken);
 
-    logger.info(`User registered successfully: ${user.id}`);
+    logger.info(`User registered successfully: ${userId}`);
 
     await sendVerificationEmail(email, verificationToken, username);
 
@@ -69,7 +69,7 @@ export const register = async (
     res.status(201).json({
       status: "success",
       data: {
-        userId: user.id,
+        userId,
         accessToken,
       },
     });
@@ -86,7 +86,7 @@ export const login = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
     const { email, password }: LoginRequest = req.body;
     const cookies = req.cookies;
@@ -167,7 +167,7 @@ export const refreshToken = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
     const cookies = req.cookies;
     if (!cookies?.jwt) {
@@ -182,9 +182,9 @@ export const refreshToken = async (
       secure: true,
     });
 
-    const user = await getUserByRefreshToken(refreshToken);
+    const userId = await getUserByRefreshToken(refreshToken);
 
-    if (!user) {
+    if (!userId) {
       jwt.verify(
         refreshToken,
         config.refreshTokenSecret,
@@ -203,7 +203,7 @@ export const refreshToken = async (
       throw new AppError("Forbidden", 403, 'invalid-refresh-token');
     }
 
-    await removeRefreshToken(user.id, refreshToken);
+    await removeRefreshToken(userId, refreshToken);
 
     jwt.verify(
       refreshToken,
@@ -216,21 +216,21 @@ export const refreshToken = async (
           throw new AppError("Forbidden", 403, 'expired-refresh-token');
         }
         if (typeof payload === "object" && "userId" in payload) {
-          if (payload.userId !== user.id) {
+          if (payload.userId !== userId) {
             throw new AppError("Forbidden", 403, 'invalid-refresh-token');
           }
         }
         const accessToken = jwt.sign(
-          { userId: user.id },
+          { userId },
           config.accessTokenSecret,
           { expiresIn: "15m" }
         );
         const newRefreshToken = jwt.sign(
-          { userId: user.id },
+          { userId },
           config.refreshTokenSecret,
           { expiresIn: "30d" }
         );
-        await addRefreshToken(user.id, newRefreshToken);
+        await addRefreshToken(userId, newRefreshToken);
 
         res.cookie("jwt", newRefreshToken, {
           httpOnly: true,
@@ -240,7 +240,7 @@ export const refreshToken = async (
         res.status(200).json({
           status: "success",
           data: {
-            userId: user.id,
+            userId,
             accessToken,
           },
         });
@@ -260,7 +260,7 @@ export const logout = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
     const cookies = req.cookies;
 
@@ -271,8 +271,8 @@ export const logout = async (
 
     const refreshToken = cookies.jwt;
 
-    const foundUser = await getUserByRefreshToken(refreshToken);
-    if(!foundUser){
+    const foundUserId = await getUserByRefreshToken(refreshToken);
+    if(!foundUserId){
       res.clearCookie("jwt", {
         httpOnly: true,
         maxAge: 30 * 24 * 60 * 60 * 1000,
@@ -282,14 +282,14 @@ export const logout = async (
        return;
     }
 
-    await removeRefreshToken(foundUser.id, refreshToken);
+    await removeRefreshToken(foundUserId, refreshToken);
     res.clearCookie("jwt", {
       httpOnly: true,
       maxAge: 30 * 24 * 60 * 60 * 1000,
       secure: true,
     });
     
-    logger.info(`User logged out successfully: ${foundUser.id}`);
+    logger.info(`User logged out successfully: ${foundUserId}`);
 
     res.sendStatus(204);
     return;
@@ -304,7 +304,11 @@ export const logout = async (
   }
 };
 
-export const verifyEmail = async(req: Request, res: Response, next: NextFunction) => {
+export const verifyEmail = async(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const token = req.query.token as string;
 
@@ -342,7 +346,11 @@ export const verifyEmail = async(req: Request, res: Response, next: NextFunction
   }
 }
 
-export const resendVerification = async (req: Request, res: Response, next: NextFunction) => {
+export const resendVerification = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const userId = req.user?.userId;
 
