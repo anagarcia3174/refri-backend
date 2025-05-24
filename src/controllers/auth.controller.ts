@@ -311,6 +311,9 @@ export const verifyEmail = async(
 ): Promise<void> => {
   try {
     const token = req.query.token as string;
+    if (!token) {
+      throw new AppError("Verification token is required", 400, 'missing-token');
+    }
 
     jwt.verify(token, config.emailVerificationTokenSecret, async (
       err: jwt.VerifyErrors | null,
