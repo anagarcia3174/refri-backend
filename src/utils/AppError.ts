@@ -1,19 +1,17 @@
-import { ErrorType } from "../types/error.types";
 
 
 class AppError extends Error {
+    code: string;
     message: string;
-    status: number;
-    type: ErrorType;
+    statusCode: number;
 
-    constructor(message: string, status: number = 500, type: ErrorType){
+    constructor(message: string, statusCode: number = 500, code: string){
         super(message);
         this.message = message;
-        this.status = status;
-        this.type = type;
+        this.statusCode = statusCode;
+        this.code = code;
 
         Error.captureStackTrace(this, this.constructor);
     }
 }
-
 export default AppError;

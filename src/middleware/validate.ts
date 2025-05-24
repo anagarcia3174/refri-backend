@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { validationResult } from 'express-validator';
 import AppError from '../utils/AppError';
-import { ErrorType } from '../types/error.types';
 
 export const validate = (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
@@ -10,7 +9,7 @@ export const validate = (req: Request, res: Response, next: NextFunction) => {
     throw new AppError(
       errorMessages.join(', '),
       409,
-      ErrorType.VALIDATION
+      'validation-error'
     );
   }
   next();

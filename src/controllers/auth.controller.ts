@@ -8,12 +8,16 @@ import {
   getUserByRefreshToken,
   removeAllRefreshTokens,
   removeRefreshToken,
+  updateUserEmailVerification,
+  getUserById,
 } from "../services/userService";
 import { CreateUserRequest, LoginRequest } from "../types/user.types";
 import { logger } from "../middleware/logger";
 import AppError from "../utils/AppError";
-import { ErrorType } from "../types/error.types";
 import { config } from "../config/config";
+import { sendVerificationEmail } from "../services/emailService";
+import path from 'path';
+import fs from 'fs/promises';
 
 export const register = async (
   req: Request,
@@ -44,10 +48,17 @@ export const register = async (
       config.refreshTokenSecret,
       { expiresIn: "30d" }
     );
+    const verificationToken = jwt.sign(
+      { userId: user.id},
+      config.emailVerificationTokenSecret,
+      { expiresIn: "15m"}
+    );
 
     await addRefreshToken(user.id, refreshToken);
 
     logger.info(`User registered successfully: ${user.id}`);
+
+    await sendVerificationEmail(email, verificationToken, username);
 
     res.cookie("jwt", refreshToken, {
       httpOnly: true,
@@ -63,7 +74,11 @@ export const register = async (
       },
     });
   } catch (error) {
-    next(error);
+    if (error instanceof AppError) {
+      next(error);
+      return;
+    }
+    next(new AppError("Error during registration", 500, 'server-error'));
   }
 };
 
@@ -81,7 +96,7 @@ export const login = async (
       throw new AppError(
         "Invalid email or password",
         401,
-        ErrorType.AUTHENTICATION
+        'invalid-credentials'
       );
     }
 
@@ -91,7 +106,7 @@ export const login = async (
       throw new AppError(
         "Invalid email or password",
         401,
-        ErrorType.AUTHENTICATION
+        'invalid-credentials'
       );
     }
 
@@ -123,7 +138,7 @@ export const login = async (
 
     await addRefreshToken(user.id, refreshToken);
 
-    logger.info(`User logged in successfully: ${user._id}`);
+    logger.info(`User logged in successfully: ${user.id}`);
 
     res.cookie("jwt", refreshToken, {
       httpOnly: true,
@@ -140,7 +155,11 @@ export const login = async (
       },
     });
   } catch (error) {
-    next(error);
+    if (error instanceof AppError) {
+      next(error);
+      return;
+    }
+    next(new AppError("Error during login", 500, 'server-error'));
   }
 };
 
@@ -152,7 +171,7 @@ export const refreshToken = async (
   try {
     const cookies = req.cookies;
     if (!cookies?.jwt) {
-      throw new AppError("Unauthorized", 401, ErrorType.AUTHENTICATION);
+      throw new AppError("Unauthorized", 401, 'no-refresh-token');
     }
 
     const refreshToken = cookies.jwt;
@@ -174,14 +193,14 @@ export const refreshToken = async (
           payload: JwtPayload | string | undefined
         ) => {
           if (err) {
-            throw new AppError("Forbidden", 403, ErrorType.AUTHENTICATION);
+            throw new AppError("Forbidden", 403, 'expired-refresh-token');
           }
           if (typeof payload === "object" && "userId" in payload) {
             await removeAllRefreshTokens(payload.userId);
           }
         }
       );
-      throw new AppError("Forbidden", 403, ErrorType.AUTHENTICATION);
+      throw new AppError("Forbidden", 403, 'invalid-refresh-token');
     }
 
     await removeRefreshToken(user.id, refreshToken);
@@ -194,11 +213,11 @@ export const refreshToken = async (
         payload: JwtPayload | string | undefined
       ) => {
         if(err){
-          throw new AppError("Forbidden", 403, ErrorType.AUTHENTICATION);
+          throw new AppError("Forbidden", 403, 'expired-refresh-token');
         }
         if (typeof payload === "object" && "userId" in payload) {
           if (payload.userId !== user.id) {
-            throw new AppError("Forbidden", 403, ErrorType.AUTHENTICATION);
+            throw new AppError("Forbidden", 403, 'invalid-refresh-token');
           }
         }
         const accessToken = jwt.sign(
@@ -228,7 +247,11 @@ export const refreshToken = async (
       }
     );
   } catch (error) {
-    next(error);
+    if (error instanceof AppError) {
+      next(error);
+      return;
+    }
+    next(new AppError("Error refreshing token", 500, 'server-error'));
   }
 };
 
@@ -265,11 +288,98 @@ export const logout = async (
       maxAge: 30 * 24 * 60 * 60 * 1000,
       secure: true,
     });
-     res.sendStatus(204);
-     return;
+    
+    logger.info(`User logged out successfully: ${foundUser.id}`);
+
+    res.sendStatus(204);
+    return;
 
     
   } catch (error) {
-    next(error);
+    if (error instanceof AppError) {
+      next(error);
+      return;
+    }
+    next(new AppError("Error during logout", 500, 'server-error'));
   }
 };
+
+export const verifyEmail = async(req: Request, res: Response, next: NextFunction) => {
+  try {
+    const token = req.query.token as string;
+
+    jwt.verify(token, config.emailVerificationTokenSecret, async (
+      err: jwt.VerifyErrors | null,
+      payload: JwtPayload | string | undefined
+    ) => {
+      if (err) {
+        const expiredTemplate = await fs.readFile(
+          path.join(__dirname, '../templates/emails/verification-expired.html'),
+          'utf-8'
+        );
+        res.status(400).send(expiredTemplate);
+        return;
+      }
+
+      if (typeof payload === "object" && "userId" in payload) {
+        await updateUserEmailVerification(payload.userId, true);
+        logger.info(`User email verified successfully: ${payload.userId}`);
+        
+        const successTemplate = await fs.readFile(
+          path.join(__dirname, '../templates/emails/verification-success.html'),
+          'utf-8'
+        );
+        res.status(200).send(successTemplate);
+        return;
+      }
+    });
+  } catch (error) {
+    if (error instanceof AppError) {
+      next(error);
+      return;
+    }
+    next(new AppError("Error verifying email", 500, 'server-error'));
+  }
+}
+
+export const resendVerification = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user?.userId;
+
+    if (!userId){
+      throw new AppError("Unauthorized", 401, 'no-user');
+
+    }
+
+    const user = await getUserById(userId);
+    if(!user){
+      throw new AppError("User not found", 404, 'no-user')
+    }
+
+    if (user.isVerified){
+      throw new AppError("Email already verified", 400, 'email-already-verified');
+    }
+
+    const verificationToken = jwt.sign(
+      { userId: user.id},
+      config.emailVerificationTokenSecret,
+      {expiresIn: "15m"}
+    )
+
+    await sendVerificationEmail(user.email, verificationToken, user.username);
+
+    logger.info(`Verification email resent successfully: ${user.id}`);
+
+    res.status(200).json({
+      status: "success",
+      message: "Verification email sent"
+    })
+  }catch(error){
+    if (error instanceof AppError) {
+      next(error);
+      return;
+    }
+    next(new AppError("Error resending verification email", 500, 'server-error'));
+  }
+}
+

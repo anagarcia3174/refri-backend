@@ -4,33 +4,33 @@ export const registerValidation = [
   body('username')
     .trim()
     .isLength({ min: 3, max: 30 })
-    .withMessage('Username must be between 3 and 30 characters')
+    .withMessage('invalid-username-length')
     .matches(/^[a-zA-Z0-9_]+$/)
-    .withMessage('Username can only contain letters, numbers, and underscores'),
+    .withMessage('invalid-username'),
 
   body('email')
     .trim()
     .isEmail()
-    .withMessage('Please enter a valid email')
+    .withMessage('invalid-email')
     .normalizeEmail(),
 
   body('password')
     .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters long')
+    .withMessage('invalid-password-length')
     .matches(/\d/)
-    .withMessage('Password must contain at least one number')
+    .withMessage('invalid-password-number')
     .matches(/[a-zA-Z]/)
-    .withMessage('Password must contain at least one letter')
+    .withMessage('invalid-password-letter')
 ];
 
 export const loginValidation = [
   body('email')
     .trim()
     .isEmail()
-    .withMessage('Please enter a valid email')
+    .withMessage('invalid-email')
     .normalizeEmail(),
 
   body('password')
     .notEmpty()
-    .withMessage('Password is required')
+    .withMessage('invalid-password')
 ]; 

@@ -4,6 +4,7 @@ import { Document } from 'mongoose';
 export interface IUser extends Document {
   username: string;
   email: string;
+  isVerified: boolean;
   password: string;
   createdAt: Date;
   updatedAt: Date;
@@ -26,6 +27,7 @@ export interface UserResponse {
   id: string;
   username: string;
   email: string;
+  isVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -41,6 +43,7 @@ export interface UpdateUserData {
   username?: string;
   email?: string;
   password?: string;
+  isVerified?: boolean;
 }
 
 // Error Types

@@ -1,48 +1,50 @@
 import { NextFunction, Request, Response } from "express";
 import { config } from "../config/config";
 import AppError from "../utils/AppError";
-import { ErrorType } from "../types/error.types";
 import { logger } from "./logger";
 
 export const errorHandler = (
-  error: Error,
+  err: Error,
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  logger.error({
-    message: error.message,
-    stack: error.stack,
+  if (err instanceof AppError) {
+    // Log expected errors at info level with context
+    logger.info(`Expected error occurred: ${err.message}`, {
+      errorCode: err.code,
+      statusCode: err.statusCode,
+      path: req.path,
+      method: req.method,
+      userId: req.user?.userId
+    });
+
+    return res.status(err.statusCode).json({
+      status: "error",
+      error: {
+        message: err.message,
+        code: err.code,
+      },
+    });
+  }
+
+  // Log unexpected errors at error level with full context
+  logger.error(`Unexpected error occurred: ${err.message}`, {
+    error: err,
+    stack: err.stack,
     path: req.path,
     method: req.method,
+    userId: req.user?.userId,
     body: req.body,
     query: req.query,
-    params: req.params,
-    ...(error instanceof AppError && {
-      errorType: error.type,
-      statusCode: error.status,
-    }),
+    params: req.params
   });
 
-  if (res.headersSent || config.nodeEnv === "debug") {
-    next(error);
-    return;
-  }
-
-  const isAppError = error instanceof AppError;
-  const statusCode = isAppError ? error.status : 500;
-  const errorType = isAppError ? error.type : ErrorType.SERVER_ERROR;
-  const message = error.message || "Internal Server Error";
-
-  const responseBody: any = {
-    success: false,
-    message: message,
-    type: errorType,
-  };
-
-  if (config.nodeEnv === "development" || config.nodeEnv === "test") {
-    responseBody.stack = error.stack;
-  }
-
-  res.status(statusCode).json(responseBody);
+  return res.status(500).json({
+    status: "error",
+    error: {
+      message: "Internal server error",
+      code: "server-error",
+    },
+  });
 };

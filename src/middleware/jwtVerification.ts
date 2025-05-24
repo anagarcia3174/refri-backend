@@ -1,8 +1,7 @@
-import { NextFunction, Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
-import { config } from '../config/config';
-import AppError from '../utils/AppError';
-import { ErrorType } from '../types/error.types';
+import { NextFunction, Request, Response } from "express";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import { config } from "../config/config";
+import AppError from "../utils/AppError";
 
 // Extend Express Request type to include user
 declare global {
@@ -15,29 +14,46 @@ declare global {
   }
 }
 
-export const verifyToken = (req: Request, res: Response, next: NextFunction) => {
+export const verifyToken = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    // Get token from header - handle both cases and ensure we get a string
-    const authHeader = (req.headers.authorization || req.headers.Authorization) as string;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new AppError('No token provided, authorization denied', 401, ErrorType.AUTHENTICATION);
+    const authHeader = (req.headers.authorization ||
+      req.headers.Authorization) as string;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      throw new AppError(
+        "No token provided, authorization denied",
+        401,
+        'no-token'
+      );
     }
 
-    const token = authHeader.split(' ')[1];
+    const token = authHeader.split(" ")[1];
 
-    // Verify token
-    const decoded = jwt.verify(token, config.accessTokenSecret) as { userId: string };
-    
-    // Add user to request
-    req.user = decoded;
-    
-    next();
+    jwt.verify(
+      token,
+      config.accessTokenSecret,
+      (
+        err: jwt.VerifyErrors | null,
+        payload: JwtPayload | string | undefined
+      ) => {
+        if (err) {
+          throw new AppError("Invalid Token", 403, 'expired-token');
+        }
+
+        if (typeof payload === "object" && "userId" in payload) {
+          req.user = { userId: payload.userId };
+        }else{
+          throw new AppError("Invalid Token", 403, 'invalid-token');
+        }
+
+        next();
+      }
+    );
   } catch (error) {
-    if (error instanceof jwt.JsonWebTokenError) {
-      next(new AppError('Invalid token', 403, ErrorType.AUTHENTICATION));
-    } else {
-      next(error);
-    }
+    next(error);
   }
 };
