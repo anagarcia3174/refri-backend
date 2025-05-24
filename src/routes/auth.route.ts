@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { register, login, refreshToken, logout, verifyEmail, resendVerification } from '../controllers/auth.controller';
-import { registerValidation, loginValidation } from '../middleware/validators';
+import { register, login, refreshToken, logout, verifyEmail, resendVerification, changePassword } from '../controllers/auth.controller';
+import { registerValidation, loginValidation, changePasswordValidation } from '../middleware/validators';
 import { validate } from '../middleware/validate';
 import { authLimiter, resendVerificationLimiter, verificationLimiter } from '../middleware/rateLimiter';
 import { verifyToken } from '../middleware/jwtVerification';
@@ -14,6 +14,6 @@ router.get('/refreshToken', refreshToken);
 router.get('/logout', logout);
 router.get('/verify-email', verificationLimiter, verifyEmail);
 router.get('/resend-verification', resendVerificationLimiter, verifyToken, resendVerification);
-
+router.post('/change-password', verifyToken, changePasswordValidation, validate, changePassword);
 
 export default router;

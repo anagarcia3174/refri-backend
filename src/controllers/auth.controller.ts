@@ -10,6 +10,7 @@ import {
   removeRefreshToken,
   updateUserEmailVerification,
   getUserById,
+  updateUserPassword,
 } from "../services/userService";
 import { CreateUserRequest, LoginRequest } from "../types/user.types";
 import { logger } from "../middleware/logger";
@@ -394,3 +395,47 @@ export const resendVerification = async (
   }
 }
 
+export const changePassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      throw new AppError("User not found.", 401, 'no-user');
+    }
+
+    const { currentPassword, newPassword } = req.body;
+
+    // Get user with password
+    const user = await getUserToLogin(userId);
+    if (!user) {
+      throw new AppError("User not found.", 404, 'no-user');
+    }
+
+    // Verify current password
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      throw new AppError("Current password is incorrect.", 401, 'invalid-credentials');
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password
+    await updateUserPassword(userId, hashedPassword);
+
+    // Remove all refresh tokens to force re-login
+    await removeAllRefreshTokens(userId);
+
+    logger.info(`User password changed successfully: ${userId}`);
+
+    res.status(200).json({
+      status: "success",
+      message: "Password changed successfully"
+    });
+  } catch (error) {
+    if (error instanceof AppError) {
+      next(error);
+      return;
+    }
+    next(new AppError("Error changing password", 500, 'server-error'));
+  }
+};

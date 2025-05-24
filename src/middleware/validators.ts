@@ -33,4 +33,25 @@ export const loginValidation = [
   body('password')
     .notEmpty()
     .withMessage('invalid-password')
+];
+
+export const changePasswordValidation = [
+  body('currentPassword')
+    .notEmpty()
+    .withMessage('invalid-password'),
+
+  body('newPassword')
+    .isLength({ min: 6 })
+    .withMessage('invalid-password-length')
+    .matches(/\d/)
+    .withMessage('invalid-password-number')
+    .matches(/[a-zA-Z]/)
+    .withMessage('invalid-password-letter')
+    .custom((value, { req }) => {
+      if (value === req.body.currentPassword) {
+        throw new Error('new-password-same');
+      }
+      return true;
+    })
+    .withMessage('new-password-same')
 ]; 

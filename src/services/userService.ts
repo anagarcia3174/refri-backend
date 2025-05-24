@@ -144,3 +144,22 @@ export const updateUserEmailVerification = async (userId: string, isVerified: bo
   }
   return user._id.toString();
 };
+
+/**
+ * Updates a user's password
+ * @param {string} userId - The ID of the user
+ * @param {string} newPassword - The new hashed password
+ * @returns {Promise<string>} The user ID
+ * @throws {AppError} If user is not found
+ */
+export const updateUserPassword = async (userId: string, newPassword: string): Promise<string> => {
+  const user = await UserModel.findByIdAndUpdate(
+    userId,
+    { password: newPassword },
+    { new: true }
+  );
+  if (!user) {
+    throw new AppError('User not found.', 404, 'no-user');
+  }
+  return user._id.toString();
+};
