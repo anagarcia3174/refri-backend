@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
+import { StatusCodes } from "http-status-codes";
 import { config } from "../config/config";
 import AppError from "../utils/AppError";
 
@@ -26,7 +27,7 @@ export const verifyToken = (
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       throw new AppError(
         "No token provided, authorization denied",
-        401,
+        StatusCodes.UNAUTHORIZED,
         'no-token'
       );
     }
@@ -41,13 +42,13 @@ export const verifyToken = (
         payload: JwtPayload | string | undefined
       ) => {
         if (err) {
-          throw new AppError("Invalid Token", 403, 'expired-token');
+          throw new AppError("Invalid Token", StatusCodes.FORBIDDEN, 'expired-token');
         }
 
         if (typeof payload === "object" && "userId" in payload) {
           req.user = { userId: payload.userId };
-        }else{
-          throw new AppError("Invalid Token", 403, 'invalid-token');
+        } else {
+          throw new AppError("Invalid Token", StatusCodes.FORBIDDEN, 'invalid-token');
         }
 
         next();

@@ -34,3 +34,35 @@ export const sendVerificationEmail = async (
     from: emailConfig.from,
   });
 };
+
+/**
+ * Sends a verification email to the user
+ * @param email - The email address to send the verification email to
+ * @param resetToken - The reset token to include in the email link
+ * @param displayName - The display name of the user
+ */
+export const sendPasswordResetEmail = async (
+  email: string,
+  resetToken: string,
+  displayName: string
+): Promise<void> => {
+  const resetLink = `${emailConfig.resetLink}?token=${resetToken}`;
+  const subject = "Reset your Refri password";
+  
+  const templatePath = path.join(
+    __dirname,
+    "../templates/emails/password-reset.html"
+  );
+  let html = await fs.readFile(templatePath, "utf-8");
+
+  html = html.replace("{{displayName}}", displayName);
+  html = html.replace("{{verificationLink}}", resetLink);
+
+  await sendEmail({
+    to: email,
+    subject,
+    html,
+    from: emailConfig.from,
+  });
+};
+

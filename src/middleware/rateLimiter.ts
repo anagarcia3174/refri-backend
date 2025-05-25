@@ -1,5 +1,6 @@
 import rateLimit from 'express-rate-limit';
 import AppError from '../utils/AppError';
+import { StatusCodes } from 'http-status-codes';
 
 // Rate limiter for auth routes
 export const authLimiter = rateLimit({
@@ -9,7 +10,7 @@ export const authLimiter = rateLimit({
   handler: (req, res, next) => {
     throw new AppError(
       'Too many requests, please try again after 15 minutes',
-      429,
+      StatusCodes.TOO_MANY_REQUESTS,
       'rate-limit-exceeded'
     );
   },

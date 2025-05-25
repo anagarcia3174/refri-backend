@@ -55,3 +55,24 @@ export const changePasswordValidation = [
     })
     .withMessage('new-password-same')
 ]; 
+
+export const forgotPasswordValidation = [
+  body('email')
+    .trim()
+    .isEmail()
+    .withMessage('invalid-email')
+    .normalizeEmail()
+]
+
+export const resetPasswordValidation = [
+  body('token')
+    .notEmpty()
+    .withMessage('Reset token is required'),
+  body('password')
+  .isLength({ min: 6 })
+  .withMessage('Password must be at least 6 characters long')
+  .matches(/\d/)
+  .withMessage('Password must contain at least one number')
+  .matches(/[a-zA-Z]/)
+  .withMessage('Password must contain at least one letter')
+];

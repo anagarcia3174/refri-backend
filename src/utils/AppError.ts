@@ -1,3 +1,5 @@
+import { StatusCodes } from "http-status-codes";
+
 
 
 class AppError extends Error {
@@ -5,7 +7,7 @@ class AppError extends Error {
     message: string;
     statusCode: number;
 
-    constructor(message: string, statusCode: number = 500, code: string){
+    constructor(message: string, statusCode = StatusCodes.INTERNAL_SERVER_ERROR, code: string){
         super(message);
         this.message = message;
         this.statusCode = statusCode;

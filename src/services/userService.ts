@@ -1,10 +1,11 @@
 import { UserModel } from "../models/userModel";
 import { CreateUserData, IUser, UserResponse } from "../types/user.types";
 import AppError from "../utils/AppError";
+import { StatusCodes } from "http-status-codes";
 
 /**
- * Creates a new user in the database
- * @param {CreateUserData} data - The user data containing username, email, and password
+ * Creates a new user
+ * @param {CreateUserData} data - The user data
  * @returns {Promise<string>} The ID of the created user
  * @throws {AppError} If email or username is already taken
  */
@@ -14,7 +15,7 @@ export const createUser = async (
   // Check if email exists
   const existingEmail = await UserModel.findOne({ email: data.email });
   if (existingEmail) {
-    throw new AppError('Email is already in use.', 409, 'email-taken');
+    throw new AppError('Email is already in use.', StatusCodes.CONFLICT, 'email-taken');
   }
 
   // Check if username exists
@@ -22,7 +23,7 @@ export const createUser = async (
     username: data.username,
   });
   if (existingUsername) {
-    throw new AppError('Username is already in use.', 409, 'username-taken');
+    throw new AppError('Username is already in use.', StatusCodes.CONFLICT, 'username-taken');
   }
 
   // Create new user
@@ -31,8 +32,8 @@ export const createUser = async (
 };
 
 /**
- * Retrieves a user by email for login purposes
- * @param {string} email - The email address of the user
+ * Gets a user by email for login purposes
+ * @param {string} email - The email to search for
  * @returns {Promise<IUser | null>} The user with password field included, or null if not found
  */
 export const getUserToLogin = async (email: string): Promise<IUser | null> => {
@@ -41,15 +42,15 @@ export const getUserToLogin = async (email: string): Promise<IUser | null> => {
 };
 
 /**
- * Retrieves a user by their ID
- * @param {string} userId - The ID of the user to retrieve
- * @returns {Promise<UserResponse>} The user without sensitive data
+ * Gets a user by ID
+ * @param {string} userId - The ID of the user to find
+ * @returns {Promise<UserResponse>} The user data
  * @throws {AppError} If user is not found
  */
 export const getUserById = async (userId: string): Promise<UserResponse> => {
   const user = await UserModel.findById(userId);
   if (!user) {
-    throw new AppError('User not found.', 404, 'no-user');
+    throw new AppError('User not found.', StatusCodes.NOT_FOUND, 'no-user');
   }
 
   // Remove password and map _id to id
@@ -63,10 +64,10 @@ export const getUserById = async (userId: string): Promise<UserResponse> => {
 };
 
 /**
- * Adds a refresh token to a user's refresh tokens array
+ * Adds a refresh token to a user
  * @param {string} userId - The ID of the user
  * @param {string} refreshToken - The refresh token to add
- * @returns {Promise<string>} The user ID
+ * @returns {Promise<string>} The ID of the user
  * @throws {AppError} If user is not found
  */
 export const addRefreshToken = async (
@@ -75,7 +76,7 @@ export const addRefreshToken = async (
 ): Promise<string> => {
   const user = await UserModel.findById(userId);
   if (!user) {
-    throw new AppError('User not found.', 404, 'no-user');
+    throw new AppError('User not found.', StatusCodes.NOT_FOUND, 'no-user');
   }
 
   user.refreshTokens.push(refreshToken);
@@ -84,46 +85,48 @@ export const addRefreshToken = async (
 };
 
 /**
- * Retrieves a user by their refresh token
+ * Gets a user by their refresh token
  * @param {string} refreshToken - The refresh token to search for
- * @returns {Promise<string | null>} The user ID, or null if not found
+ * @returns {Promise<string | null>} The ID of the user, or null if not found
  */
-export const getUserByRefreshToken = async (refreshToken: string): Promise<string | null> => {
-  const user = await UserModel.findOne({refreshTokens: {$in: [refreshToken]}});
-  if(!user){
-    return null;
-  }
-  return user._id.toString();
+export const getUserByRefreshToken = async (
+  refreshToken: string
+): Promise<string | null> => {
+  const user = await UserModel.findOne({ refreshTokens: refreshToken });
+  return user ? user._id.toString() : null;
 };
 
 /**
- * Removes a specific refresh token from a user's refresh tokens array
+ * Removes a refresh token from a user
  * @param {string} userId - The ID of the user
  * @param {string} refreshToken - The refresh token to remove
- * @returns {Promise<string>} The user ID
+ * @returns {Promise<string>} The ID of the user
  * @throws {AppError} If user is not found
  */
-export const removeRefreshToken = async (userId: string, refreshToken: string): Promise<string> => {
+export const removeRefreshToken = async (
+  userId: string,
+  refreshToken: string
+): Promise<string> => {
   const user = await UserModel.findById(userId);
-  if(!user){
-    throw new AppError('User not found.', 404, 'no-user');
+  if (!user) {
+    throw new AppError('User not found.', StatusCodes.NOT_FOUND, 'no-user');
   }
 
-  user.refreshTokens = user.refreshTokens.filter(token => token !== refreshToken);
+  user.refreshTokens = user.refreshTokens.filter((token: string) => token !== refreshToken);
   await user.save();
   return user._id.toString();
 };
 
 /**
- * Removes all refresh tokens from a user's refresh tokens array
+ * Removes all refresh tokens from a user
  * @param {string} userId - The ID of the user
- * @returns {Promise<string>} The user ID
+ * @returns {Promise<string>} The ID of the user
  * @throws {AppError} If user is not found
  */
 export const removeAllRefreshTokens = async (userId: string): Promise<string> => {
   const user = await UserModel.findById(userId);
-  if(!user){
-    throw new AppError('User not found.', 404, 'no-user');
+  if (!user) {
+    throw new AppError('User not found.', StatusCodes.NOT_FOUND, 'no-user');
   }
 
   user.refreshTokens = [];
@@ -135,12 +138,16 @@ export const removeAllRefreshTokens = async (userId: string): Promise<string> =>
  * Updates a user's email verification status
  * @param {string} userId - The ID of the user
  * @param {boolean} isVerified - The new verification status
- * @returns {Promise<string>} The user ID
+ * @returns {Promise<string>} The ID of the user
+ * @throws {AppError} If user is not found
  */
-export const updateUserEmailVerification = async (userId: string, isVerified: boolean): Promise<string> => {
+export const updateUserEmailVerification = async (
+  userId: string,
+  isVerified: boolean
+): Promise<string> => {
   const user = await UserModel.findByIdAndUpdate(userId, {isVerified}, {new: true});
   if (!user) {
-    throw new AppError('User not found.', 404, 'no-user');
+    throw new AppError('User not found.', StatusCodes.NOT_FOUND, 'no-user');
   }
   return user._id.toString();
 };
@@ -148,18 +155,21 @@ export const updateUserEmailVerification = async (userId: string, isVerified: bo
 /**
  * Updates a user's password
  * @param {string} userId - The ID of the user
- * @param {string} newPassword - The new hashed password
- * @returns {Promise<string>} The user ID
+ * @param {string} newPassword - The new password
+ * @returns {Promise<string>} The ID of the user
  * @throws {AppError} If user is not found
  */
-export const updateUserPassword = async (userId: string, newPassword: string): Promise<string> => {
+export const updateUserPassword = async (
+  userId: string,
+  newPassword: string
+): Promise<string> => {
   const user = await UserModel.findByIdAndUpdate(
     userId,
     { password: newPassword },
     { new: true }
   );
   if (!user) {
-    throw new AppError('User not found.', 404, 'no-user');
+    throw new AppError('User not found.', StatusCodes.NOT_FOUND, 'no-user');
   }
   return user._id.toString();
 };

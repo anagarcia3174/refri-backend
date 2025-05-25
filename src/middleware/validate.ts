@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { validationResult } from 'express-validator';
 import AppError from '../utils/AppError';
+import { StatusCodes } from 'http-status-codes';
+import { ErrorCode } from '../types/error.types';
 
 export const validate = (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
@@ -8,8 +10,8 @@ export const validate = (req: Request, res: Response, next: NextFunction) => {
     const errorMessages = errors.array().map(error => error.msg);
     throw new AppError(
       errorMessages.join(', '),
-      409,
-      'validation-error'
+      StatusCodes.BAD_REQUEST,
+      ErrorCode.VALIDATION_ERROR
     );
   }
   next();

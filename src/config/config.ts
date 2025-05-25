@@ -8,6 +8,7 @@ interface Config {
     accessTokenSecret: string;
     refreshTokenSecret: string;
     emailVerificationTokenSecret: string;
+    passwordResetTokenSecret: string;
 }
 
 interface dbConfig {
@@ -19,7 +20,9 @@ export const config: Config = {
     nodeEnv: process.env.NODE_ENV || 'development',
     accessTokenSecret: process.env.ACCESS_TOKEN_SECRET || 'your-access-secret-key',
     refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET || 'your-refresh-secret-key',
-    emailVerificationTokenSecret: process.env.EMAIL_VERIFICATION_TOKEN_SECRET || 'your-email-verification-secret-key'
+    emailVerificationTokenSecret: process.env.EMAIL_VERIFICATION_TOKEN_SECRET || 'your-email-verification-secret-key',
+    passwordResetTokenSecret: process.env.PASSWORD_RESET_TOKEN_SECRET || 'your-password-reset-secret-key'
+
 }
 
 export const dbConfig: dbConfig = {
