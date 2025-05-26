@@ -1,7 +1,7 @@
 import path from "path";
 import fs from "fs/promises";
 import { emailConfig } from "../config/email.config";
-import { sendEmail } from "../utils/mailer";
+import { sendEmail } from "../utils/mailer.util";
 
 
 /**

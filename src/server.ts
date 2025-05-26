@@ -1,9 +1,9 @@
 import express from 'express';
 import { config } from './config/config';
-import { connectDB } from './config/dbConnection';
+import { connectDB } from './config/db-connection.config';
 import cors from 'cors';
-import { errorHandler } from './middleware/error-handler';
-import authRoutes from './routes/auth.route';
+import { errorHandler } from './middleware/error-handler.middleware';
+import authRoutes from './routes/auth.routes';
 import cookieParser from 'cookie-parser';
 
 

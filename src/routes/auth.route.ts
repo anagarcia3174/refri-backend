@@ -1,14 +1,14 @@
 import { Router } from 'express';
-import { register, login, refreshToken, logout, verifyEmail, resendVerification, changePassword, forgotPassword, resetPassword, showResetPasswordForm, getAuthStatus } from '../controllers/auth.controller';
-import { registerValidation, loginValidation, changePasswordValidation, forgotPasswordValidation, resetPasswordValidation } from '../middleware/validators';
-import { validate } from '../middleware/validate';
-import { authLimiter, resendVerificationLimiter, verificationLimiter } from '../middleware/rateLimiter';
-import { verifyToken } from '../middleware/jwtVerification';
+import { registerValidation, loginValidation, changePasswordValidation, forgotPasswordValidation, resetPasswordValidation } from '../middleware/validators.middleware';
+import { validate } from '../middleware/validate.middleware';
+import { verifyEmail, resendVerification} from '../controllers/email.controller';
+import { changePassword, forgotPassword, resetPassword, showResetPasswordForm } from '../controllers/password.controller';
+import { authLimiter, resendVerificationLimiter, verificationLimiter } from '../middleware/rate-limiter.middleware';
+import { verifyToken } from '../middleware/jwt-verification.middleware';
+import { login, logout, register } from '../controllers/auth.controller';
+import { refreshToken } from '../controllers/token.controller';
 
 const router = Router();
-
-// Auth status route - checks if user is authenticated
-router.get('/status', verifyToken, getAuthStatus);
 
 // Auth routes
 router.post('/register', authLimiter,registerValidation, validate, register);

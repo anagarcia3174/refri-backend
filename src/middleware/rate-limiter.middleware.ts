@@ -1,5 +1,5 @@
 import rateLimit from 'express-rate-limit';
-import AppError from '../utils/AppError';
+import AppError from '../utils/app-error.util';
 import { StatusCodes } from 'http-status-codes';
 
 // Rate limiter for auth routes

@@ -2,7 +2,8 @@ import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { StatusCodes } from "http-status-codes";
 import { config } from "../config/config";
-import AppError from "../utils/AppError";
+import AppError from "../utils/app-error.util";
+import { verifyAccessToken } from "../utils/jwt.util";
 
 // Extend Express Request type to include user
 declare global {
@@ -28,32 +29,33 @@ export const verifyToken = (
       throw new AppError(
         "No token provided, authorization denied",
         StatusCodes.UNAUTHORIZED,
-        'no-token'
+        "no-token"
       );
     }
 
     const token = authHeader.split(" ")[1];
 
-    jwt.verify(
-      token,
-      config.accessTokenSecret,
-      (
-        err: jwt.VerifyErrors | null,
-        payload: JwtPayload | string | undefined
-      ) => {
-        if (err) {
-          throw new AppError("Invalid Token", StatusCodes.FORBIDDEN, 'expired-token');
-        }
+    const result = verifyAccessToken(token);
 
-        if (typeof payload === "object" && "userId" in payload) {
-          req.user = { userId: payload.userId };
-        } else {
-          throw new AppError("Invalid Token", StatusCodes.FORBIDDEN, 'invalid-token');
-        }
+    if (!result.isValid || result.isExpired) {
+      throw new AppError(
+        "Invalid Token",
+        StatusCodes.FORBIDDEN,
+        "expired-token"
+      );
+    }
 
-        next();
-      }
-    );
+    if (result.isValid && result.payload?.userId) {
+      req.user = { userId: result.payload.userId };
+    } else {
+      throw new AppError(
+        "Invalid Token",
+        StatusCodes.FORBIDDEN,
+        "invalid-token"
+      );
+    }
+
+    next();
   } catch (error) {
     next(error);
   }

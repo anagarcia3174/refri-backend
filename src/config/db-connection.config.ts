@@ -1,9 +1,16 @@
 import mongoose from "mongoose";
 import { dbConfig } from "./config";
-import AppError from "../utils/AppError";
-import { logger } from "../middleware/logger";
+import AppError from "../utils/app-error.util";
+import { logger } from "../utils/logger.util";
 import { StatusCodes } from "http-status-codes";
-import { ErrorCode } from "../types/error.types";
+
+interface dbConfig {
+  mongoURL: string;
+}
+
+const dbConfig: dbConfig = {
+  mongoURL: process.env.MONGO_URL || 'mongodb://localhost:27017/your-database-name',
+}
 
 export const connectDB = () => {
   if (!dbConfig.mongoURL) {

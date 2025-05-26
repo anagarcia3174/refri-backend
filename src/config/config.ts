@@ -11,9 +11,7 @@ interface Config {
     passwordResetTokenSecret: string;
 }
 
-interface dbConfig {
-    mongoURL: string;
-}
+
 
 export const config: Config = {
     port: Number(process.env.PORT) || 3000,
@@ -25,6 +23,3 @@ export const config: Config = {
 
 }
 
-export const dbConfig: dbConfig = {
-    mongoURL: process.env.MONGO_URL || 'mongodb://localhost:27017/your-database-name',
-}
