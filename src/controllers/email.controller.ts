@@ -8,10 +8,7 @@ import { ApiResponse } from "../types/api.types";
 import { logger } from "../utils/logger.util";
 import AppError from "../utils/app-error.util";
 import { sendVerificationEmail } from "../services/email.service";
-import path from 'path';
-import fs from 'fs/promises';
 import { createEmailVerificationToken, verifyEmailVerificationToken } from "../utils/jwt.util";
-
 
 export const verifyEmail = async(
     req: Request,
@@ -32,20 +29,9 @@ export const verifyEmail = async(
 
         logger.info(`User email verified successfully: ${result.payload.userId}`);
           
-          const successTemplate = await fs.readFile(
-            path.join(__dirname, '../templates/pages/verification-success.html'),
-            'utf-8'
-          );
-          res.status(200).send(successTemplate);
-          return;
+        return res.status(200).render('email/verification-success');
       }else{
-          const expiredTemplate = await fs.readFile(
-            path.join(__dirname, '../templates/pages/verification-expired.html'),
-            'utf-8'
-          );
-          res.status(400).send(expiredTemplate);
-          return;
-        
+          return res.status(400).render('email/verification-expired');
       }
     } catch (error) {
       if (error instanceof AppError) {

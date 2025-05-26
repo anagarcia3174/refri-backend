@@ -1,10 +1,9 @@
-import { NextFunction, Request, Response } from "express";
-import { config } from "../config/config";
+import { ErrorRequestHandler, NextFunction, Request, Response } from "express";
 import AppError from "../utils/app-error.util";
 import { logger } from "../utils/logger.util";
 import { ApiResponse } from "../types/api.types";
 
-export const errorHandler = (
+export const errorHandler: ErrorRequestHandler = (
   err: Error,
   req: Request,
   res: Response,
@@ -28,7 +27,7 @@ export const errorHandler = (
       },
     };
 
-    return res.status(err.statusCode).json(response);
+    res.status(err.statusCode).json(response);
   }
 
   // Log unexpected errors at error level with full context
@@ -51,5 +50,5 @@ export const errorHandler = (
     },
   };
 
-  return res.status(500).json(response);
+  res.status(500).json(response);
 };

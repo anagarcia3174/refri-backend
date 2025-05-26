@@ -4,7 +4,7 @@ import { ses } from '../config/aws.config';
 interface SendEmailOptions {
     to: string;
     subject: string;
-    html: string;
+    template: string;
     from: string;
 }
 
@@ -17,13 +17,13 @@ const transporter = nodemailer.createTransport({
  * @param options Email options including recipient, subject, HTML content, and sender
  */
 export const sendEmail = async (options: SendEmailOptions): Promise<void> => {
-    const { to, subject, html, from } = options;
+    const { to, subject, template, from } = options;
 
     const mailOptions: nodemailer.SendMailOptions = {
         from: from,
         to,
         subject,
-        html,
+        html: template,
     }
 
     await transporter.sendMail(mailOptions);

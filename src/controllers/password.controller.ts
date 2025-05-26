@@ -9,8 +9,6 @@ import { ApiResponse } from "../types/api.types";
 import { logger } from "../utils/logger.util";
 import AppError from "../utils/app-error.util";
 import { sendPasswordResetEmail } from "../services/email.service";
-import path from "path";
-import fs from "fs/promises";
 import { StatusCodes } from "http-status-codes";
 import {
   createPasswordResetToken,
@@ -139,19 +137,9 @@ export const showResetPasswordForm = async (
     const result = verifyPasswordResetToken(token);
 
     if (result.isValid && !result.isExpired && result.payload?.userId) {
-      const resetTemplate = await fs.readFile(
-        path.join(__dirname, "../templates/pages/reset-password.html"),
-        "utf-8"
-      );
-      res.status(200).send(resetTemplate);
-      return;
+      return res.status(200).render('password/reset-password');
     } else {
-      const expiredTemplate = await fs.readFile(
-        path.join(__dirname, "../templates/pages/reset-password-expired.html"),
-        "utf-8"
-      );
-      res.status(400).send(expiredTemplate);
-      return;
+      return res.status(400).render('password/reset-password-expired');
     }
   } catch (error) {
     if (error instanceof AppError) {

@@ -1,8 +1,7 @@
 import path from "path";
-import fs from "fs/promises";
 import { emailConfig } from "../config/email.config";
 import { sendEmail } from "../utils/mailer.util";
-
+import ejs from "ejs";
 
 /**
  * Sends a verification email to the user
@@ -20,17 +19,14 @@ export const sendVerificationEmail = async (
   
   const templatePath = path.join(
     __dirname,
-    "../templates/emails/verification.html"
+    "views/emails/verification.ejs"
   );
-  let html = await fs.readFile(templatePath, "utf-8");
-
-  html = html.replace("{{displayName}}", displayName);
-  html = html.replace("/{{verificationLink}}/g", verificationLink);
+  let template = await ejs.renderFile(templatePath, {displayName, verificationLink});
 
   await sendEmail({
     to: email,
     subject,
-    html,
+    template,
     from: emailConfig.from,
   });
 };
@@ -51,17 +47,14 @@ export const sendPasswordResetEmail = async (
   
   const templatePath = path.join(
     __dirname,
-    "../templates/emails/password-reset.html"
+    "views/emails/password-reset.ejs"
   );
-  let html = await fs.readFile(templatePath, "utf-8");
-
-  html = html.replace("{{displayName}}", displayName);
-  html = html.replace("{{verificationLink}}", resetLink);
+  let template = await ejs.renderFile(templatePath, {displayName, resetLink});
 
   await sendEmail({
     to: email,
     subject,
-    html,
+    template,
     from: emailConfig.from,
   });
 };
