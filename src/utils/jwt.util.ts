@@ -28,7 +28,7 @@ const createToken = (
 };
 
 export const createAccessToken = (userId: string): string => {
-  return createToken(userId, config.accessTokenSecret, 15* 60);
+  return createToken(userId, config.accessTokenSecret, 24 * 60 * 60);
 }
 
 export const createRefreshToken = (userId: string): string => {
@@ -40,7 +40,7 @@ export const createEmailVerificationToken = (userId: string): string => {
 }
 
 export const createPasswordResetToken = (userId: string): string => {
-  return createToken(userId, config.passwordResetTokenSecret, 30 * 60);
+  return createToken(userId, config.resetPasswordTokenSecret, 30 * 60);
 }
 /**
  * Verifies and decodes a JWT token
@@ -105,5 +105,5 @@ export const verifyEmailVerificationToken = (token: string): TokenVerificationRe
  * @returns TokenVerificationResult containing verification status and payload
  */
 export const verifyPasswordResetToken = (token: string): TokenVerificationResult => {
-  return verifyToken(token, config.passwordResetTokenSecret);
+  return verifyToken(token, config.resetPasswordTokenSecret);
 };

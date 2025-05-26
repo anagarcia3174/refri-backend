@@ -1,6 +1,15 @@
 import dotenv from 'dotenv';
+import { z } from 'zod';
 
 dotenv.config();
+
+const envSchema = z.object({
+    EMAIL_FROM: z.string().email(),
+    VERIFICATION_LINK: z.string().url(),
+    RESET_LINK: z.string().url(),
+});
+
+const env = envSchema.parse(process.env);
 
 interface EmailConfig {
     from: string;
@@ -9,7 +18,7 @@ interface EmailConfig {
 }
 
 export const emailConfig: EmailConfig = {
-    from: process.env.EMAIL_FROM || 'noreply@example.com',
-    verificationLink: process.env.VERIFICATION_LINK || 'http://localhost:3000/api/auth/verify-email',
-    resetLink: process.env.RESET_LINK || 'http://localhost:3000/api/auth/reset-password'
+    from: env.EMAIL_FROM,
+    verificationLink: env.VERIFICATION_LINK,
+    resetLink: env.RESET_LINK,
 }

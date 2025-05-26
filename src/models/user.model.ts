@@ -28,8 +28,6 @@ const UserSchema = new mongoose.Schema<IUserDocument, IUserModel>({
     timestamps: true
 })
 
-UserSchema.index({ email: 1 });
-UserSchema.index({ username: 1 });
 
 UserSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean>{
     return await bcrypt.compare(candidatePassword, this.password);

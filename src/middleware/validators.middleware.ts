@@ -1,4 +1,4 @@
-import { body } from 'express-validator';
+import { body, query } from 'express-validator';
 import { ErrorCode } from '../utils/app-error.util';
 
 export const registerValidation = [
@@ -77,3 +77,12 @@ export const resetPasswordValidation = [
   .matches(/[a-zA-Z]/)
   .withMessage('Password must contain at least one letter')
 ];
+
+export const queryTokenValidation = [
+  query('token')
+    .notEmpty()
+    .withMessage(ErrorCode.MISSING_TOKEN)
+    .isJWT()
+    .withMessage(ErrorCode.INVALID_TOKEN)
+]
+
