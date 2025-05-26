@@ -1,4 +1,4 @@
-import AppError from "../utils/app-error.util";
+import AppError, { ErrorCode } from "../utils/app-error.util";
 import { StatusCodes } from "http-status-codes";
 import { config } from "../config/config";
 import jwt, { JwtPayload } from "jsonwebtoken";
@@ -29,7 +29,7 @@ export const refreshToken = async (
       throw new AppError(
         "Unauthorized",
         StatusCodes.UNAUTHORIZED,
-        "no-refresh-token"
+        ErrorCode.MISSING_TOKEN
       );
     }
 
@@ -54,7 +54,7 @@ export const refreshToken = async (
       throw new AppError(
         "Forbidden",
         StatusCodes.FORBIDDEN,
-        "invalid-refresh-token"
+        ErrorCode.INVALID_TOKEN
       );
     }
 
@@ -64,7 +64,7 @@ export const refreshToken = async (
       throw new AppError(
         "Forbidden",
         StatusCodes.FORBIDDEN,
-        "expired-refresh-token"
+        ErrorCode.INVALID_TOKEN
       );
     }
 
@@ -72,7 +72,7 @@ export const refreshToken = async (
       throw new AppError(
         "Forbidden",
         StatusCodes.FORBIDDEN,
-        "invalid-refresh-token"
+        ErrorCode.INVALID_TOKEN
       );
     } else if (result.isValid && result.payload?.userId === user.id) {
       const accessToken = createAccessToken(user.id);
@@ -96,7 +96,7 @@ export const refreshToken = async (
       throw new AppError(
         "Forbidden",
         StatusCodes.FORBIDDEN,
-        "invalid-refresh-token"
+        ErrorCode.INVALID_TOKEN
       );
     }
   } catch (error) {
@@ -108,7 +108,7 @@ export const refreshToken = async (
       new AppError(
         "Error refreshing token",
         StatusCodes.INTERNAL_SERVER_ERROR,
-        "server-error"
+        ErrorCode.SERVER_ERROR
       )
     );
   }

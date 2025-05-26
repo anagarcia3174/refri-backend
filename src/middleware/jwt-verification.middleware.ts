@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { StatusCodes } from "http-status-codes";
 import { config } from "../config/config";
-import AppError from "../utils/app-error.util";
+import AppError, { ErrorCode } from "../utils/app-error.util";
 import { verifyAccessToken } from "../utils/jwt.util";
 
 // Extend Express Request type to include user
@@ -29,7 +29,7 @@ export const verifyToken = (
       throw new AppError(
         "No token provided, authorization denied",
         StatusCodes.UNAUTHORIZED,
-        "no-token"
+        ErrorCode.MISSING_TOKEN
       );
     }
 
@@ -41,7 +41,7 @@ export const verifyToken = (
       throw new AppError(
         "Invalid Token",
         StatusCodes.FORBIDDEN,
-        "expired-token"
+        ErrorCode.INVALID_TOKEN
       );
     }
 
@@ -51,7 +51,7 @@ export const verifyToken = (
       throw new AppError(
         "Invalid Token",
         StatusCodes.FORBIDDEN,
-        "invalid-token"
+        ErrorCode.INVALID_TOKEN
       );
     }
 

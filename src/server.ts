@@ -4,6 +4,9 @@ import { connectDB } from "./config/db-connection.config";
 import cors from "cors";
 import { errorHandler } from "./middleware/error-handler.middleware";
 import authRoutes from "./routes/auth.route";
+import emailRoutes from "./routes/email.route";
+import passwordRoutes from "./routes/password.route";
+import tokenRoutes from "./routes/token.route";
 import cookieParser from "cookie-parser";
 import path from "path";
 
@@ -25,6 +28,9 @@ app.use(cookieParser());
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/email", emailRoutes);
+app.use("/api/password", passwordRoutes);
+app.use("/api/token", tokenRoutes);
 
 // Error handling
 app.use(errorHandler);

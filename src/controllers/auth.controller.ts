@@ -11,7 +11,7 @@ import {
 import { RegisterRequest, LoginRequest } from "../types/user.types";
 import { ApiResponse, AuthResponse, AuthStatusResponse } from "../types/api.types";
 import { logger } from "../utils/logger.util";
-import AppError from "../utils/app-error.util";
+import AppError, { ErrorCode } from "../utils/app-error.util";
 import { sendVerificationEmail } from "../services/email.service";
 import { StatusCodes } from "http-status-codes";
 import { createAccessToken, createRefreshToken, createEmailVerificationToken } from "../utils/jwt.util";
@@ -62,7 +62,7 @@ export const register = async (
       next(error);
       return;
     }
-    next(new AppError("Error during registration", StatusCodes.INTERNAL_SERVER_ERROR, 'server-error'));
+    next(new AppError("Error during registration", StatusCodes.INTERNAL_SERVER_ERROR, ErrorCode.SERVER_ERROR));
   }
 };
 
@@ -80,7 +80,7 @@ export const login = async (
       throw new AppError(
         "Invalid email or password",
         StatusCodes.UNAUTHORIZED,
-        'invalid-credentials'
+        ErrorCode.INVALID_CREDENTIALS
       );
     }
 
@@ -90,7 +90,7 @@ export const login = async (
       throw new AppError(
         "Invalid email or password",
         StatusCodes.UNAUTHORIZED,
-        'invalid-credentials'
+        ErrorCode.INVALID_CREDENTIALS
       );
     }
 
@@ -136,7 +136,7 @@ export const login = async (
       next(error);
       return;
     }
-    next(new AppError("Error during login", StatusCodes.INTERNAL_SERVER_ERROR, 'server-error'));
+    next(new AppError("Error during login", StatusCodes.INTERNAL_SERVER_ERROR, ErrorCode.SERVER_ERROR));
   }
 };
 
@@ -187,7 +187,7 @@ export const logout = async (
       next(error);
       return;
     }
-    next(new AppError("Error during logout", StatusCodes.INTERNAL_SERVER_ERROR, 'server-error'));
+    next(new AppError("Error during logout", StatusCodes.INTERNAL_SERVER_ERROR, ErrorCode.SERVER_ERROR));
   }
 };
 
@@ -245,6 +245,6 @@ export const getAuthStatus = async (
       next(error);
       return;
     }
-    next(new AppError("Error checking auth status", StatusCodes.INTERNAL_SERVER_ERROR, 'server-error'));
+    next(new AppError("Error checking auth status", StatusCodes.INTERNAL_SERVER_ERROR, ErrorCode.SERVER_ERROR));
   }
 };

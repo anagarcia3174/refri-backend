@@ -1,66 +1,67 @@
 import { body } from 'express-validator';
+import { ErrorCode } from '../utils/app-error.util';
 
 export const registerValidation = [
   body('username')
     .trim()
     .isLength({ min: 3, max: 30 })
-    .withMessage('invalid-username-length')
+    .withMessage(ErrorCode.INVALID_USERNAME_LENGTH)
     .matches(/^[a-zA-Z0-9_]+$/)
-    .withMessage('invalid-username'),
+    .withMessage(ErrorCode.INVALID_USERNAME),
 
   body('email')
     .trim()
     .isEmail()
-    .withMessage('invalid-email')
+    .withMessage(ErrorCode.INVALID_EMAIL)
     .normalizeEmail(),
 
   body('password')
     .isLength({ min: 6 })
-    .withMessage('invalid-password-length')
+    .withMessage(ErrorCode.INVALID_PASSWORD_LENGTH)
     .matches(/\d/)
-    .withMessage('invalid-password-number')
+    .withMessage(ErrorCode.INVALID_PASSWORD_NUMBER)
     .matches(/[a-zA-Z]/)
-    .withMessage('invalid-password-letter')
+    .withMessage(ErrorCode.INVALID_PASSWORD_LETTER)
 ];
 
 export const loginValidation = [
   body('email')
     .trim()
     .isEmail()
-    .withMessage('invalid-email')
+    .withMessage(ErrorCode.INVALID_EMAIL)
     .normalizeEmail(),
 
   body('password')
     .notEmpty()
-    .withMessage('invalid-password')
+    .withMessage(ErrorCode.INVALID_PASSWORD)
 ];
 
 export const changePasswordValidation = [
   body('currentPassword')
     .notEmpty()
-    .withMessage('invalid-password'),
+    .withMessage(ErrorCode.INVALID_PASSWORD),
 
   body('newPassword')
     .isLength({ min: 6 })
-    .withMessage('invalid-password-length')
+    .withMessage(ErrorCode.INVALID_PASSWORD_LETTER)
     .matches(/\d/)
-    .withMessage('invalid-password-number')
+    .withMessage(ErrorCode.INVALID_PASSWORD_NUMBER)
     .matches(/[a-zA-Z]/)
-    .withMessage('invalid-password-letter')
+    .withMessage(ErrorCode.INVALID_PASSWORD_LETTER)
     .custom((value, { req }) => {
       if (value === req.body.currentPassword) {
         throw new Error('new-password-same');
       }
       return true;
     })
-    .withMessage('new-password-same')
+    .withMessage(ErrorCode.INVALID_PASSWORD)
 ]; 
 
 export const forgotPasswordValidation = [
   body('email')
     .trim()
     .isEmail()
-    .withMessage('invalid-email')
+    .withMessage(ErrorCode.INVALID_EMAIL)
     .normalizeEmail()
 ]
 

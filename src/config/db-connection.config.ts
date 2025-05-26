@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import AppError from "../utils/app-error.util";
+import AppError, { ErrorCode } from "../utils/app-error.util";
 import { logger } from "../utils/logger.util";
 import { StatusCodes } from "http-status-codes";
 
@@ -16,7 +16,7 @@ export const connectDB = () => {
     throw new AppError(
       "MongoDB URL is not defined",
       StatusCodes.INTERNAL_SERVER_ERROR,
-      'database-error'
+      ErrorCode.DATABASE_ERROR
     );
   }
   mongoose.connect(dbConfig.mongoURL);
@@ -25,7 +25,7 @@ export const connectDB = () => {
     throw new AppError(
       `MongoDB connection error: ${error.message}`,
       StatusCodes.INTERNAL_SERVER_ERROR,
-      'database-error'
+      ErrorCode.DATABASE_ERROR
     );
   });
 

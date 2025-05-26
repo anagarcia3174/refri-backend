@@ -1,5 +1,5 @@
 import { IUserDocument, UserModel } from "../models/user.model";
-import AppError from "../utils/app-error.util";
+import AppError, { ErrorCode } from "../utils/app-error.util";
 import { StatusCodes } from "http-status-codes";
 import { CreateUserData } from "../types/user.types";
 
@@ -7,12 +7,12 @@ import { CreateUserData } from "../types/user.types";
 export const createUser = async (data: CreateUserData): Promise<IUserDocument> => {
   const existingEmail = await UserModel.findByEmail(data.email);
   if (existingEmail) {
-    throw new AppError('Email is already in use.', StatusCodes.CONFLICT, 'email-taken');
+    throw new AppError('Email is already in use.', StatusCodes.CONFLICT, ErrorCode.EMAIL_TAKEN);
   }
 
   const existingUsername = await UserModel.findByUsername(data.username);
   if (existingUsername) {
-    throw new AppError('Username is already in use.', StatusCodes.CONFLICT, 'username-taken');
+    throw new AppError('Username is already in use.', StatusCodes.CONFLICT, ErrorCode.USERNAME_TAKEN);
   }
 
   const user = await UserModel.create(data);
@@ -27,7 +27,7 @@ export const getUserByEmail = async (email: string): Promise<IUserDocument | nul
 export const getUserById = async (userId: string): Promise<IUserDocument> => {
   const user = await UserModel.findById(userId);
   if (!user) {
-    throw new AppError("User not found.", StatusCodes.NOT_FOUND, "no-user");
+    throw new AppError("User not found.", StatusCodes.NOT_FOUND,ErrorCode.NO_USER);
   }
 
   return user;
@@ -39,7 +39,7 @@ export const addRefreshToken = async (
 ): Promise<void> => {
   const user = await UserModel.findById(userId);
   if (!user) {
-    throw new AppError("User not found.", StatusCodes.NOT_FOUND, "no-user");
+    throw new AppError("User not found.", StatusCodes.NOT_FOUND,ErrorCode.NO_USER);
   }
 
   user.refreshTokens.push(refreshToken);
@@ -60,7 +60,7 @@ export const removeRefreshToken = async (
 ): Promise<void> => {
   const user = await UserModel.findById(userId);
   if (!user) {
-    throw new AppError("User not found.", StatusCodes.NOT_FOUND, "no-user");
+    throw new AppError("User not found.", StatusCodes.NOT_FOUND,ErrorCode.NO_USER);
   }
 
   user.refreshTokens = user.refreshTokens.filter(
@@ -75,7 +75,7 @@ export const removeAllRefreshTokens = async (
 ): Promise<void> => {
   const user = await UserModel.findById(userId);
   if (!user) {
-    throw new AppError("User not found.", StatusCodes.NOT_FOUND, "no-user");
+    throw new AppError("User not found.", StatusCodes.NOT_FOUND,ErrorCode.NO_USER);
   }
 
   user.refreshTokens = [];
@@ -93,7 +93,7 @@ export const updateVerificationStatus = async (
     { new: true }
   );
   if (!user) {
-    throw new AppError("User not found.", StatusCodes.NOT_FOUND, "no-user");
+    throw new AppError("User not found.", StatusCodes.NOT_FOUND,ErrorCode.NO_USER);
   }
   return;
 };
@@ -108,7 +108,7 @@ export const updateUserPassword = async (
     { new: true }
   );
   if (!user) {
-    throw new AppError("User not found.", StatusCodes.NOT_FOUND, "no-user");
+    throw new AppError("User not found.", StatusCodes.NOT_FOUND,ErrorCode.NO_USER);
   }
   return;
 };

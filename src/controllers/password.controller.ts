@@ -7,7 +7,7 @@ import {
 } from "../services/user.service";
 import { ApiResponse } from "../types/api.types";
 import { logger } from "../utils/logger.util";
-import AppError from "../utils/app-error.util";
+import AppError, { ErrorCode } from "../utils/app-error.util";
 import { sendPasswordResetEmail } from "../services/email.service";
 import { StatusCodes } from "http-status-codes";
 import {
@@ -26,7 +26,7 @@ export const changePassword = async (
       throw new AppError(
         "User not found.",
         StatusCodes.UNAUTHORIZED,
-        "no-user"
+        ErrorCode.NO_USER
       );
     }
 
@@ -35,7 +35,7 @@ export const changePassword = async (
     // Get user with password
     const user = await getUserByEmail(userId);
     if (!user) {
-      throw new AppError("User not found.", StatusCodes.NOT_FOUND, "no-user");
+      throw new AppError("User not found.", StatusCodes.NOT_FOUND, ErrorCode.NO_USER);
     }
 
     // Verify current password
@@ -44,7 +44,7 @@ export const changePassword = async (
       throw new AppError(
         "Current password is incorrect.",
         StatusCodes.UNAUTHORIZED,
-        "invalid-credentials"
+        ErrorCode.INVALID_CREDENTIALS
       );
     }
 
@@ -73,7 +73,7 @@ export const changePassword = async (
       new AppError(
         "Error changing password",
         StatusCodes.INTERNAL_SERVER_ERROR,
-        "server-error"
+        ErrorCode.SERVER_ERROR
       )
     );
   }
@@ -90,7 +90,7 @@ export const forgotPassword = async (
     const user = await getUserByEmail(email);
 
     if (!user) {
-      throw new AppError("User not found.", StatusCodes.NOT_FOUND, "no-user");
+      throw new AppError("User not found.", StatusCodes.NOT_FOUND, ErrorCode.NO_USER);
     }
 
     const resetToken = createPasswordResetToken(user.id);
@@ -113,7 +113,7 @@ export const forgotPassword = async (
       new AppError(
         "Error sending password reset email",
         StatusCodes.INTERNAL_SERVER_ERROR,
-        "server-error"
+        ErrorCode.SERVER_ERROR
       )
     );
   }
@@ -130,7 +130,7 @@ export const showResetPasswordForm = async (
       throw new AppError(
         "Reset token is required",
         StatusCodes.BAD_REQUEST,
-        "missing-token"
+        ErrorCode.MISSING_TOKEN
       );
     }
 
@@ -150,7 +150,7 @@ export const showResetPasswordForm = async (
       new AppError(
         "Error showing reset password form",
         StatusCodes.INTERNAL_SERVER_ERROR,
-        "server-error"
+        ErrorCode.SERVER_ERROR
       )
     );
   }
@@ -168,7 +168,7 @@ export const resetPassword = async (
       throw new AppError(
         "Reset token is required",
         StatusCodes.BAD_REQUEST,
-        "missing-token"
+        ErrorCode.MISSING_TOKEN
       );
     }
 
@@ -190,7 +190,7 @@ export const resetPassword = async (
       throw new AppError(
         "Invalid or expired reset token",
         StatusCodes.BAD_REQUEST,
-        "invalid-token"
+        ErrorCode.INVALID_TOKEN
       );
     }
   } catch (error) {
@@ -202,7 +202,7 @@ export const resetPassword = async (
       new AppError(
         "Error resetting password",
         StatusCodes.INTERNAL_SERVER_ERROR,
-        "server-error"
+        ErrorCode.SERVER_ERROR
       )
     );
   }

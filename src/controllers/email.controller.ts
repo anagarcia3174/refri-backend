@@ -6,7 +6,7 @@ import {
 } from "../services/user.service";
 import { ApiResponse } from "../types/api.types";
 import { logger } from "../utils/logger.util";
-import AppError from "../utils/app-error.util";
+import AppError, { ErrorCode } from "../utils/app-error.util";
 import { sendVerificationEmail } from "../services/email.service";
 import { createEmailVerificationToken, verifyEmailVerificationToken } from "../utils/jwt.util";
 
@@ -18,7 +18,7 @@ export const verifyEmail = async(
     try {
       const token = req.query.token as string;
       if (!token) {
-        throw new AppError("Verification token is required", StatusCodes.BAD_REQUEST, 'missing-token');
+        throw new AppError("Verification token is required", StatusCodes.BAD_REQUEST, ErrorCode.MISSING_TOKEN);
       }
       const result = verifyEmailVerificationToken(token);
 
@@ -38,7 +38,7 @@ export const verifyEmail = async(
         next(error);
         return;
       }
-      next(new AppError("Error verifying email", StatusCodes.INTERNAL_SERVER_ERROR, 'server-error'));
+      next(new AppError("Error verifying email", StatusCodes.INTERNAL_SERVER_ERROR, ErrorCode.SERVER_ERROR));
     }
   }
   
@@ -51,17 +51,17 @@ export const verifyEmail = async(
       const userId = req.user?.userId;
   
       if (!userId){
-        throw new AppError("Unauthorized", StatusCodes.UNAUTHORIZED, 'no-user');
+        throw new AppError("User not found", StatusCodes.UNAUTHORIZED, ErrorCode.NO_USER);
   
       }
   
       const user = await getUserById(userId);
       if(!user){
-        throw new AppError("User not found", StatusCodes.NOT_FOUND, 'no-user')
+        throw new AppError("User not found", StatusCodes.NOT_FOUND, ErrorCode.NO_USER)
       }
   
       if (user.isVerified){
-        throw new AppError("Email already verified", StatusCodes.BAD_REQUEST, 'email-already-verified');
+        throw new AppError("Email already verified", StatusCodes.BAD_REQUEST, ErrorCode.EMAIL_ALREADY_VERIFIED);
       }
   
       const verificationToken = createEmailVerificationToken(
@@ -82,6 +82,6 @@ export const verifyEmail = async(
         next(error);
         return;
       }
-      next(new AppError("Error resending verification email", StatusCodes.INTERNAL_SERVER_ERROR, 'server-error'));
+      next(new AppError("Error resending verification email", StatusCodes.INTERNAL_SERVER_ERROR, ErrorCode.SERVER_ERROR));
     }
   }

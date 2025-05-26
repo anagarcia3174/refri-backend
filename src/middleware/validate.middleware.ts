@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { validationResult } from 'express-validator';
-import AppError from '../utils/app-error.util';
+import AppError, { ErrorCode } from '../utils/app-error.util';
 import { StatusCodes } from 'http-status-codes';
 
 export const validate = (req: Request, res: Response, next: NextFunction) => {
@@ -10,7 +10,7 @@ export const validate = (req: Request, res: Response, next: NextFunction) => {
     throw new AppError(
       errorMessages.join(', '),
       StatusCodes.BAD_REQUEST,
-      'validation-error'
+      ErrorCode.VALIDATION_ERROR
     );
   }
   next();
