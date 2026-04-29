@@ -37,7 +37,10 @@ class AppError extends Error {
     message: string;
     statusCode: number;
 
-    constructor(message: string, statusCode = StatusCodes.INTERNAL_SERVER_ERROR, code: ErrorCode){
+    constructor(message = 'Internal server error', statusCode = StatusCodes.INTERNAL_SERVER_ERROR, code: ErrorCode){
+        if (!message) {
+            message = 'Internal server error';
+        }
         super(message);
         this.message = message;
         this.statusCode = statusCode;

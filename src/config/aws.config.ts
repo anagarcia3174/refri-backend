@@ -25,19 +25,8 @@ const awsConfig: AWSConfig = {
   region: env.AWS_REGION,
 };
 
-// Create SES client with retry configuration
-const sesClient = new SESv2Client({
-  ...awsConfig,
-  maxAttempts: 3, // Number of retries
-  retryMode: 'standard', // Use standard retry mode
-});
 
+const sesClient = new SESv2Client(awsConfig);
 
-
-
-// Export validated configuration
-export const ses = {
-  sesClient,
-  SendEmailCommand,
-};
+export { sesClient, SendEmailCommand };
 

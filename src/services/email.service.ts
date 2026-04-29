@@ -24,7 +24,7 @@ export const sendVerificationEmail = async (
     
     const templatePath = path.join(
       __dirname,
-      "views/emails/verification.ejs"
+      "../views/email/verification.ejs"
     );
 
     let template;
@@ -32,7 +32,7 @@ export const sendVerificationEmail = async (
       template = await ejs.renderFile(templatePath, { displayName, verificationLink });
     } catch (error: any) {
       logger.error('Failed to render verification email template:', {
-        error: error.message,
+        error: error,
         email,
         templatePath
       });
@@ -78,7 +78,7 @@ export const sendPasswordResetEmail = async (
     
     const templatePath = path.join(
       __dirname,
-      "views/emails/password-reset.ejs"
+      "../views/password/password-reset.ejs"
     );
 
     let template;

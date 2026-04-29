@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import { ses } from '../config/aws.config';
+import { sesClient, SendEmailCommand } from '../config/aws.config';
 import { logger } from './logger.util';
 import AppError, { ErrorCode } from './app-error.util';
 import { StatusCodes } from 'http-status-codes';
@@ -13,9 +13,7 @@ interface SendEmailOptions {
 
 // Create transporter with SES configuration
 const transporter = nodemailer.createTransport({
-    SES: ses.sesClient,
-    sendingRate: 1, // Number of messages per second
-    maxConnections: 1, // Maximum number of simultaneous connections
+    SES: {sesClient, SendEmailCommand},
 });
 
 /**

@@ -13,9 +13,12 @@ const env = envSchema.parse(process.env);
 const MAX_RETRIES = 5;
 const RETRY_INTERVAL = 5000; // 5 seconds
 
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export const connectDB = async (): Promise<void> => {
   const mongoURL = env.MONGO_URL;
   let retries = 0;
+  let isReconnecting = false;
 
   const connectWithRetry = async () => {
     try {
@@ -37,9 +40,14 @@ export const connectDB = async (): Promise<void> => {
         );
       }
       logger.info(`Retrying in ${RETRY_INTERVAL / 1000} seconds...`);
-      setTimeout(connectWithRetry, RETRY_INTERVAL);
+      await delay(RETRY_INTERVAL);
+      return connectWithRetry();
     }
   };
+
+  mongoose.connection.on("open", () => {
+    logger.info("MongoDB connection opened");
+  });
 
   // Attach event listeners ONCE
   mongoose.connection.on("error", (error: Error) => {
@@ -47,10 +55,14 @@ export const connectDB = async (): Promise<void> => {
   });
 
   mongoose.connection.on("disconnected", () => {
+    if (isReconnecting) return;
+    isReconnecting = true;
     logger.warn("MongoDB disconnected. Attempting to reconnect...");
     connectWithRetry().catch((error) => {
       logger.error("Failed to reconnect to MongoDB:", error);
       process.exit(1);
+    }).finally(() => {
+      isReconnecting = false;
     });
   });
 

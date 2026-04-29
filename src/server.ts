@@ -10,7 +10,6 @@ import tokenRoutes from "./routes/token.route";
 import cookieParser from "cookie-parser";
 import path from "path";
 import { logger } from "./utils/logger.util";
-import mongoSanitize from "express-mongo-sanitize";
 
 connectDB();
 
@@ -21,8 +20,6 @@ const port = config.port || 3000;
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 
-// MongoDB sanitization
-app.use(mongoSanitize());
 
 // Other Middleware
 app.set("view engine", "ejs");
